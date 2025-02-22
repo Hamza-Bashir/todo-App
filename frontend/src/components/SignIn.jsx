@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 function SignIn() {
   const navigate = useNavigate();
@@ -17,7 +18,7 @@ function SignIn() {
 
   const handleSign = async () => {
     if (!userData.name || !userData.email || !userData.password) {
-      alert("Please fill all field");
+      toast.warn("Please fill all field", { position: "top-right" });
       return;
     }
     try {
@@ -25,10 +26,12 @@ function SignIn() {
         "http://localhost:3000/signIn",
         userData
       );
-      console.log(response);
-      navigate("/login");
+      toast.success("Sign in successfully", { position: "top-right" });
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
     } catch (error) {
-      console.log(error);
+      toast.error(`Error:${error}`, { position: "top-right" });
     }
   };
 
