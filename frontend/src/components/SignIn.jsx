@@ -17,21 +17,16 @@ function SignIn() {
   };
 
   const handleSign = async () => {
-    if (!userData.name || !userData.email || !userData.password) {
-      toast.warn("Please fill all field", { position: "top-right" });
-      return;
-    }
     try {
       const response = await axios.post(
         "http://localhost:3000/signIn",
         userData
       );
-      toast.success("Sign in successfully", { position: "top-right" });
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
+      toast.success("User registered successfully", { position: "top-right" });
+      navigate("/login");
     } catch (error) {
-      toast.error(`Error:${error}`, { position: "top-right" });
+      toast.error(error.response.data.error);
+      console.log(error.response.data.error);
     }
   };
 

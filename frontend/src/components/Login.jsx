@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 function Login() {
   const navigate = useNavigate();
@@ -13,7 +14,7 @@ function Login() {
   };
   const handleLogin = async () => {
     if (!userData.email || !userData.password) {
-      alert("All field are required");
+      toast.warn("All field are required");
       return;
     }
     try {
@@ -22,16 +23,12 @@ function Login() {
         userData
       );
 
-      console.log(response.data.token);
-      localStorage.setItem("token", response.data.token);
-
-      setUserData({
-        email: "",
-        password: "",
-      });
+      toast.success("Login successfully", { position: "top-right" });
+      const token = response.data.token;
+      localStorage.setItem("token", token);
       navigate("/todo");
     } catch (error) {
-      console.log(error);
+      toast.error(error.response.data.error);
     }
   };
   return (

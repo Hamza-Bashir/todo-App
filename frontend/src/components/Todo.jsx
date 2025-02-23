@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
 
 function Todo() {
   const [todo, setTodo] = useState({
     title: "",
     description: "",
-    priority: "Medium", // Default priority
   });
   const [todos, setTodos] = useState([]);
 
@@ -15,46 +15,63 @@ function Todo() {
   const decode = token ? jwtDecode(token) : null;
   const user_id = decode?._id;
 
-  // ✅ Fetch Todos once when component mounts
+  const fetchTodo = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:3000/alltask/${user_id}`
+      );
+      setTodos(response.data.tasks || []);
+    } catch (error) {
+      console.error("Error fetching todos:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchTodo = async () => {
-      try {
-        const response = await axios.get(
-          `http://localhost:3000/alltask/${user_id}`
-        );
-        setTodos(response.data.tasks);
-        console.log(response.data.tasks);
-      } catch (error) {
-        console.error("Error fetching todos:", error);
-      }
-    };
-    fetchTodo();
-  }, []); // Empty dependency array to avoid infinite loop
+    if (user_id) fetchTodo();
+  }, [user_id]);
 
   const handleChange = (e) => {
     setTodo({ ...todo, [e.target.name]: e.target.value });
   };
 
   const handleAddTodo = async () => {
+    if (!todo.title || !todo.description) {
+      return toast.error("All fields are required!", { position: "top-right" });
+    }
     try {
       const response = await axios.post(
         `http://localhost:3000/addTask/${user_id}`,
         todo
       );
-      setTodos([...todos, response.data.task]); // ✅ Update UI without re-fetching
-      setTodo({ title: "", description: "", priority: "Medium" }); // ✅ Reset input fields
+      fetchTodo()
+      
+      toast.success("Todo added successfully!", { position: "top-right" });
+
+      setTodo({ title: "", description: "" });
     } catch (error) {
-      console.error("Error adding todo:", error);
+      toast.error(error.response?.data?.error || "Error adding task", {
+        position: "top-right",
+      });
+      console.error(error);
     }
   };
 
+  
+
   const deleteTask = async (task_id) => {
-    const response = await axios.delete(
-      `http://localhost:3000/deleteTask/${task_id}`
-    );
-    fetchTodo();
+    try {
+      await axios.delete(`http://localhost:3000/deleteTask/${task_id}`);
+      setTodos((prevTodos) => prevTodos.filter((task) => task._id !== task_id));
+      toast.success("Task deleted successfully!", { position: "top-right" });
+    } catch (error) {
+      toast.error("Error deleting task!", { position: "top-right" });
+      console.error(error);
+    }
   };
 
+  todos.map((todo)=>(
+    console.log(todo.title)
+  ))
   return (
     <div className="h-screen flex items-center justify-center bg-gray-100 bg-gradient-to-r from-blue-500 to-purple-600">
       <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-lg">
@@ -62,7 +79,6 @@ function Todo() {
           Todo List
         </h1>
 
-        {/* Inputs & Button */}
         <div className="mt-6 space-y-4">
           <input
             type="text"
@@ -81,23 +97,6 @@ function Todo() {
             onChange={handleChange}
           />
 
-          {/* Priority Selection */}
-          <div className="flex justify-between items-center">
-            {["High", "Medium", "Low"].map((level) => (
-              <label key={level} className="flex items-center">
-                <input
-                  type="radio"
-                  name="priority"
-                  value={level}
-                  checked={todo.priority === level}
-                  onChange={handleChange}
-                  className="mr-2"
-                />
-                {level}
-              </label>
-            ))}
-          </div>
-
           <button
             onClick={handleAddTodo}
             className="w-full bg-blue-500 text-white px-5 py-2 rounded-lg hover:bg-blue-600 transition duration-300"
@@ -106,14 +105,12 @@ function Todo() {
           </button>
         </div>
 
-        {/* Todo Table */}
         <div className="mt-6">
           <table className="w-full border-collapse">
             <thead>
               <tr className="bg-blue-500 text-white">
                 <th className="p-3 text-left">Title</th>
                 <th className="p-3 text-left">Description</th>
-                <th className="p-3 text-left">Priority</th>
                 <th className="p-3 text-left">Status</th>
                 <th className="p-3 text-center">Action</th>
               </tr>
@@ -133,12 +130,7 @@ function Todo() {
                   >
                     <td className="p-3">{todo.title}</td>
                     <td className="p-3">{todo.description}</td>
-                    <td className="p-3 font-semibold">
-                      {todo.priority_id.priority_level}
-                    </td>
-                    <td className="p-3 font-semibold">
-                      {todo.status_id.status_type}
-                    </td>
+                    <td className="p-3">{todo.status || "Pending"}</td>
                     <td className="p-3 text-center">
                       <button
                         className="text-red-500 hover:text-red-600 cursor-pointer block"

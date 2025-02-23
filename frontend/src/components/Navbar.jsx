@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { AiOutlineClose } from "react-icons/ai";
 import { Link, useNavigate } from "react-router-dom";
+import {toast} from "react-toastify"
 
 function Navbar() {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ function Navbar() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     setIsAuthenticated(false);
+    toast.success("Logout successfully", {position:"top-right"})
     navigate("/");
   };
 

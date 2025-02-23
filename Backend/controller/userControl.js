@@ -1,4 +1,5 @@
 const user = require("../model/userModel")
+const {signValid, loginValid} = require("../validation/authValidation")
 
 const bcrypt = require("bcrypt")
 
@@ -9,6 +10,14 @@ const signIn = async (req,res)=>{
   try {
     
     const {name,email,password} = req.body
+
+    const {error} = signValid.validate(req.body)
+
+    if(error){
+      return res.status(400).json({
+        error:error.details[0].message
+      })
+    }
 
     const existingUser = await user.findOne({email})
 
@@ -41,6 +50,12 @@ const signIn = async (req,res)=>{
 const login = async (req,res)=>{
   try {
     const {email, password} = req.body
+    const {error} = loginValid.validate(req.body)
+    if(error){
+      return res.status(400).json({
+        error:error.details[0].message
+      })
+    }
     const existingUser = await user.findOne({email})
 
     if(!existingUser){

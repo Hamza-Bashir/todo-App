@@ -3,10 +3,17 @@ const user = require("../model/userModel");
 const status = require("../model/statusModel");
 const priority = require("../model/priorityModel");
 const mongoose = require("mongoose")
+const taskSchema = require("../validation/taskValidation")
 
 const addTask = async (req, res) => {
   try {
     const { title, description } = req.body;
+    const {error} = taskSchema.validate(req.body)
+    if(error){
+      return res.status(400).json({
+        error:error.message
+      })
+    }
     const user_id = req.params.user_id;
 
     // Fetch status and priority

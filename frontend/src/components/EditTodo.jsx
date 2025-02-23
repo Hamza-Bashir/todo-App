@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 function EditTodo() {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ function EditTodo() {
       `http://localhost:3000/updateTask/${id}`,
       todo
     );
-    console.log("Task updated successfully");
+    toast.success("Task updated successfully", { position: "top-right" });
     navigate("/todo");
   };
   return (
